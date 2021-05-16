@@ -19,6 +19,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 const (
@@ -50,7 +51,7 @@ func main() {
 	if *flagClient == "" {
 		log.Fatalf("Must specify Client ID (--client)")
 	}
-	tfile := tokenFilePrefix + "_" + *flagClient + ".json"
+	tfile := *flagTextFileCollectorDir + "/" + tokenFilePrefix + "_" + *flagClient + ".json"
 
 	// Create the oauth2.config object and get a token
 	config := gosmart.NewOAuthConfig(*flagClient, *flagSecret)
@@ -215,9 +216,16 @@ func valueOneOf(v interface{}, options []string) (float64, error) {
 // valueFloat returns the float64 value of the value passed or
 // error if the value cannot be converted.
 func valueFloat(v interface{}) (float64, error) {
-	val, ok := v.(float64)
-	if !ok {
-		return 0.0, fmt.Errorf("invalid non floating-point argument %v", v)
+	switch v.(type) {
+	case float64:
+		val, ok := v.(float64)
+		if !ok {
+			return 0.0, fmt.Errorf("invalid non floating-point argument %v", v)
+		}
+		return val, nil
+	case string:
+		return strconv.ParseFloat(v.(string), 64)
+	default:
+		return 0.0, fmt.Errorf("unknown type given %v", v)
 	}
-	return val, nil
 }
